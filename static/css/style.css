@@ -1,0 +1,21 @@
+body { font-family: 'Segoe UI', Arial, sans-serif; 
+.weather-icon {
+    width: 32px;
+    height: 32px;
+    vertical-align: middle;
+}
+}
+/* Style for weather forecast table */
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 128, 0, 0.1);
+}
+header {
+    background: linear-gradient(90deg, #e0ffe0, #f0fff0);
+    background-image: url('/static/images/emblem.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 160px auto;
+    opacity: 0.98;
+}
+.card { box-shadow: 0 2px 8px rgba(34,139,34,0.07); }
+footer { letter-spacing: 1px; }

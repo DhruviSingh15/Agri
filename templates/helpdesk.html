@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helpdesk Query</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body style="position: relative; min-height: 100vh;">
+    {% include 'navbar.html' %}
+    <div class="container py-5">
+        <h2 class="mb-4">Helpdesk & Community Forum</h2>
+        <div class="mb-3">
+            <p><strong>Contact us:</strong> 1800-180-1551 | <a href="mailto:help@agri.gov.in">help@agri.gov.in</a></p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Contact Us</h5>
+                        <p class="card-text">For any queries or assistance, please fill out the form below.</p>
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                          {% if messages %}
+                            {% for category, message in messages %}
+                              <div class="alert alert-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                          {% endif %}
+                        {% endwith %}
+                        <form method="post">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="name" name="name" placeholder="Your Name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email address</label>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="subject" class="form-label">Subject</label>
+                                <input type="text" class="form-control" id="subject" name="subject" placeholder="Subject" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="message" class="form-label">Your Query</label>
+                                <textarea class="form-control" id="message" name="message" rows="3" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">All Queries</h5>
+                        {% if prev_queries and prev_queries|length > 0 %}
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    {% if is_admin %}<th>User</th>{% endif %}
+                                    <th>Name</th><th>Email</th><th>Subject</th><th>Query</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for q in prev_queries %}
+                                <tr>
+                                    {% if is_admin %}<td>{{ q.user }}</td>{% endif %}
+                                    <td>{{ q.name }}</td>
+                                    <td>{{ q.email }}</td>
+                                    <td>{{ q.subject }}</td>
+                                    <td>{{ q.message }}
+                                        {% if q.reply %}
+                                            <div class="alert alert-success mt-2 mb-0 p-2"><strong>Reply:</strong> {{ q.reply }}</div>
+                                        {% endif %}
+                                        {% if is_admin %}
+                                        <form method="post" class="mt-2 d-flex align-items-center">
+                                            <input type="hidden" name="reply_to" value="{{ loop.index0 }}">
+                                            <input type="text" name="reply_text" class="form-control form-control-sm me-2" placeholder="Type reply...">
+                                            <button type="submit" class="btn btn-primary btn-sm me-2">Reply</button>
+                                        </form>
+                                        <form method="post" class="d-inline">
+                                            <input type="hidden" name="delete_query" value="{{ loop.index0 }}">
+                                            <button type="submit" class="btn btn-danger btn-sm mt-1">Delete</button>
+                                        </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <div class="alert alert-info">No queries submitted yet.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr class="my-5">
+        <h2 class="mb-4">Discussion Forum</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        <!-- New Thread Form -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="post">
+                    <input type="hidden" name="new_thread" value="1">
+                    <div class="mb-2">
+                        <label for="title" class="form-label">Thread Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    <div class="mb-2">
+                        <label for="message" class="form-label">Message</label>
+                        <textarea class="form-control" id="message" name="message" rows="2" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-success">Post Thread</button>
+                </form>
+            </div>
+        </div>
+        {% if forum_threads and forum_threads|length > 0 %}
+            {% for thread in forum_threads %}
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">{{ thread.title }}</h5>
+                        {% if is_admin %}
+                        <form method="post" class="d-inline">
+                            <input type="hidden" name="delete_thread" value="{{ loop.index0 }}">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    <p class="card-text">{{ thread.message }}<br><small class="text-muted">- by {{ thread.user }}</small></p>
+                    <hr>
+                    <h6>Replies</h6>
+                    <ul class="list-group mb-3">
+                        {% for reply in thread.replies %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>{{ reply.message }} <small class="text-muted">by {{ reply.user }}</small></span>
+                            {% if is_admin %}
+                            <form method="post" class="d-inline ms-2">
+                                <input type="hidden" name="delete_reply" value="{{ loop.index0 }}">
+                                <input type="hidden" name="thread_idx" value="{{ loop.parent.index0 }}">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                            {% endif %}
+                        </li>
+                        {% else %}
+                        <li class="list-group-item text-muted">No replies yet.</li>
+                        {% endfor %}
+                    </ul>
+                    <!-- Reply Form -->
+                    <form method="post" class="mt-2">
+                        <input type="hidden" name="reply_to" value="{{ loop.index0 }}">
+                        <div class="mb-2">
+                            <label class="form-label">Your Reply</label>
+                            <input type="text" class="form-control" name="reply_message" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">Post Reply</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-info">No threads yet. Start the discussion!</div>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e-Marketplace</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    {% include 'navbar.html' %}
+    <div class="container py-5">
+        <h2 class="mb-4">e-Marketplace</h2>
+        <form class="card p-4 mb-4" method="POST" action="/marketplace">
+            <h5>List Your Crop</h5>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" class="form-control" name="crop" placeholder="Crop Name" required>
+                </div>
+                <div class="col-md-4">
+                    <input type="number" class="form-control" name="quantity" placeholder="Quantity (kg)" required>
+                </div>
+                <div class="col-md-4">
+                    <input type="number" class="form-control" name="price" placeholder="Price per kg (₹)" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success mt-3">List Crop</button>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead class="table-success">
+                    <tr>
+                        <th>Farmer</th>
+                        <th>Crop</th>
+                        <th>Quantity (kg)</th>
+                        <th>Price (₹/kg)</th>
+                        <th>Trend</th>
+                        <th>Status</th>
+                        <th>Contact</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for listing in listings %}
+                    <tr>
+                        <td>{{ users[listing.user_id].username if listing.user_id in users else 'User' }}</td>
+                        <td>{{ listing.crop }}</td>
+                        <td>{{ listing.quantity }}</td>
+                        <td>{{ listing.price }}</td>
+                        <td>
+                            {% set trend = trends|random %}
+                            <span class="badge bg-info">{{ trend }}</span>
+                        </td>
+                        <td><span class="badge bg-success">{{ listing.status }}</span></td>
+                        <td>{{ users[listing.user_id].email if listing.user_id in users else '' }}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#buyModal{{ listing.id }}">Buy</button>
+                            <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#offerModal{{ listing.id }}">Make Offer</button>
+                            <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#offersModal{{ listing.id }}">View Offers</button>
+                        </td>
+                    </tr>
+                {% endfor %}
+                {% if listings|length == 0 %}
+                    <tr><td colspan="8" class="text-center">No listings yet.</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+        {% for listing in listings %}
+        <!-- Buy Modal -->
+        <div class="modal fade" id="buyModal{{ listing.id }}" tabindex="-1" aria-labelledby="buyModal{{ listing.id }}Label" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="buyModal{{ listing.id }}Label">Buy {{ listing.crop }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <p>Contact farmer <b>{{ users[listing.user_id].username if listing.user_id in users else 'User' }}</b> at <b>{{ users[listing.user_id].email if listing.user_id in users else '' }}</b> to proceed with your purchase.</p>
+                <div class="alert alert-info">Buying is a direct transaction. Please contact the farmer to complete your purchase.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Offer Modal -->
+        <div class="modal fade" id="offerModal{{ listing.id }}" tabindex="-1" aria-labelledby="offerModal{{ listing.id }}Label" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="offerModal{{ listing.id }}Label">Make Offer for {{ listing.crop }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <form method="POST" action="/marketplace">
+                  <input type="hidden" name="offer_listing_id" value="{{ listing.id }}">
+                  <div class="mb-3">
+                    <label for="offerPrice{{ listing.id }}" class="form-label">Your Offer Price (₹/kg)</label>
+                    <input type="number" class="form-control" id="offerPrice{{ listing.id }}" name="offer_price" placeholder="Enter price" required>
+                  </div>
+                  <button type="submit" class="btn btn-warning">Submit Offer</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Offers Modal -->
+        <div class="modal fade" id="offersModal{{ listing.id }}" tabindex="-1" aria-labelledby="offersModal{{ listing.id }}Label" aria-hidden="true">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="offersModal{{ listing.id }}Label">Offers for {{ listing.crop }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                {% set offers = offers_by_listing[listing.id] %}
+                {% if offers|length == 0 %}
+                  <div class="text-muted">No offers yet.</div>
+                {% else %}
+                  <ul class="list-group">
+                    {% for offer in offers %}
+                      <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                          <div>
+                            <h6 class="mb-1">
+                              <b>{{ users[offer.user_id].username if offer.user_id in users else 'User' }}</b>
+                              {% if offer.status == 'accepted' %}
+                                <span class="badge bg-success ms-2">Accepted</span>
+                              {% elif offer.status == 'rejected' %}
+                                <span class="badge bg-danger ms-2">Rejected</span>
+                              {% else %}
+                                <span class="badge bg-warning ms-2">Pending</span>
+                              {% endif %}
+                            </h6>
+                            <p class="mb-1">Offer: ₹{{ offer.offer_price }}</p>
+                            <small class="text-muted">{{ offer.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                          </div>
+                          <div>
+                            {% if offer.user_id == current_user.id %}
+                              {% if offer.status == 'pending' %}
+                                <form method="POST" action="/marketplace/cancel-offer" class="d-inline">
+                                  <input type="hidden" name="offer_id" value="{{ offer.id }}">
+                                  <button type="submit" class="btn btn-danger btn-sm">Cancel Offer</button>
+                                </form>
+                              {% endif %}
+                            {% elif current_user.id == listing.user_id %}
+                              {% if offer.status == 'pending' %}
+                                <form method="POST" action="/marketplace/accept-offer" class="d-inline">
+                                  <input type="hidden" name="offer_id" value="{{ offer.id }}">
+                                  <button type="submit" class="btn btn-success btn-sm">Accept Offer</button>
+                                </form>
+                                <form method="POST" action="/marketplace/reject-offer" class="d-inline ms-2">
+                                  <input type="hidden" name="offer_id" value="{{ offer.id }}">
+                                  <button type="submit" class="btn btn-danger btn-sm">Reject Offer</button>
+                                </form>
+                              {% endif %}
+                            {% endif %}
+                          </div>
+                        </div>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
