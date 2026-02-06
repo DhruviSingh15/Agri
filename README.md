@@ -26,6 +26,7 @@ Agri is an interactive and responsive agriculture-focused web application design
 
 ## 📁 Project Structure
 
+```
 Agri/
 ├── static/ # CSS, JavaScript, images
 ├── templates/ # HTML templates
@@ -41,29 +42,33 @@ Agri/
 ├── check_users.py # User verification script
 ├── requirements.txt # Dependencies
 └── README.md # Project documentation
-
-
----
+```
 
 ## ⚙️ How to Run
 
+### 1. Install Dependencies
 ```bash
-# Install dependencies
 pip install -r requirements.txt
+```
 
-# Run the application
+### Run the application
+```bash
 python app.py
-Open browser and visit:
+```
 
+### Open browser and visit:
+```bash
 http://localhost:5000
-🎯 Objective
+```
+
+## 🎯 Objective
 Promote digital awareness in agriculture
 
 Demonstrate modern web development skills
 
 Build a foundation for an agriculture e-marketplace system
 
-🔮 Future Scope
+##🔮 Future Scope
 Farmer & buyer authentication
 
 Fully functional e-marketplace
@@ -74,5 +79,5 @@ Weather-based crop recommendations
 
 Government agriculture scheme integration
 
-📄 License
+## 📄 License
 This project is licensed under the MIT License.
