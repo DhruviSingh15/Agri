@@ -68,7 +68,7 @@ Demonstrate modern web development skills
 
 Build a foundation for an agriculture e-marketplace system
 
-##🔮 Future Scope
+## 🔮 Future Scope
 Farmer & buyer authentication
 
 Fully functional e-marketplace
